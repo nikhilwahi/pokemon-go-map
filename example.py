@@ -34,7 +34,6 @@ from urllib2 import urlopen
 import requests
 
 
-
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 API_URL = 'https://pgorelease.nianticlabs.com/plfe/rpc'
