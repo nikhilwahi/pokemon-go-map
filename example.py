@@ -29,6 +29,11 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from requests.adapters import ConnectionError
 from requests.models import InvalidURL
 from transform import *
+from json import load
+from urllib2 import urlopen
+import requests
+
+
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -69,7 +74,7 @@ api_endpoint = None
 pokemons = {}
 gyms = {}
 pokestops = {}
-numbertoteam = {  # At least I'm pretty sure that's it. I could be wrong and then I'd be displaying the wrong owner team of gyms.
+numbertoteam = {
     0: 'Gym',
     1: 'Mystic',
     2: 'Valor',
@@ -182,13 +187,13 @@ def set_location(location_name):
     set_location_coords(local_lat, local_lng, alt)
 
 
-def set_location_coords(lat, long, alt):
+def set_location_coords(latitude, longitude, alt):
     global COORDS_LATITUDE, COORDS_LONGITUDE, COORDS_ALTITUDE
     global FLOAT_LAT, FLOAT_LONG
-    FLOAT_LAT = lat
-    FLOAT_LONG = long
-    COORDS_LATITUDE = f2i(lat)  # 0x4042bd7c00000000 # f2i(lat)
-    COORDS_LONGITUDE = f2i(long)  # 0xc05e8aae40000000 #f2i(long)
+    FLOAT_LAT = latitude
+    FLOAT_LONG = longitude
+    COORDS_LATITUDE = f2i(latitude)  # 0x4042bd7c00000000 # f2i(lat)
+    COORDS_LONGITUDE = f2i(longitude)  # 0xc05e8aae40000000 #f2i(long)
     COORDS_ALTITUDE = f2i(alt)
 
 
@@ -436,13 +441,20 @@ def get_token(service, username, password):
 
 def get_args():
     parser = argparse.ArgumentParser()
+    my_ip = load(urlopen('http://jsonip.com'))['ip']
+    url = 'http://freegeoip.net/json/'+my_ip
+    r = requests.get(url)
+    js = r.json()
+    latitude = js['latitude']
+    longitude = js['longitude']
+    lat_long = str(latitude)+' '+str(longitude)
     parser.add_argument(
         '-a', '--auth_service', type=str.lower, help='Auth Service', default='ptc')
     parser.add_argument('-u', '--username', help='Username', required=True)
-    parser.add_argument('-p', '--password', help='Password', required=False)
+    parser.add_argument('-p', '--password', help='Password', required=False, default='password')
     parser.add_argument(
-        '-l', '--location', type=parse_unicode, help='Location', required=True)
-    parser.add_argument('-st', '--step-limit', help='Steps', required=True)
+        '-l', '--location', type=parse_unicode, help='Location', required=False, default=lat_long)
+    parser.add_argument('-st', '--step-limit', help='Steps', required=False, default=10)
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         '-i', '--ignore', help='Comma-separated list of Pokémon names or IDs to ignore')
@@ -656,7 +668,7 @@ def process_step(args, api_endpoint, access_token, profile_response,
                 for wild in cell.WildPokemon:
                     hash = wild.SpawnPointId;
                     if hash not in seen.keys() or (seen[hash].TimeTillHiddenMs <= wild.TimeTillHiddenMs):
-                        visible.append(wild)    
+                        visible.append(wild)
                     seen[hash] = wild.TimeTillHiddenMs
                 if cell.Fort:
                     for Fort in cell.Fort:
