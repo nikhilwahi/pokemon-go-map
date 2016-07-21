@@ -453,7 +453,7 @@ def get_args():
     parser.add_argument('-p', '--password', help='Password', required=False, default='password')
     parser.add_argument(
         '-l', '--location', type=parse_unicode, help='Location', required=False, default=lat_long)
-    parser.add_argument('-st', '--step-limit', help='Steps', required=False, default=10)
+    parser.add_argument('-st', '--step-limit', help='Steps', required=False, default=100)
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         '-i', '--ignore', help='Comma-separated list of Pokémon names or IDs to ignore')
@@ -480,7 +480,7 @@ def get_args():
         '-H',
         '--host',
         help='Set web server listening host',
-        default='127.0.0.1')
+        default='0.0.0.0')
     parser.add_argument(
         '-P',
         '--port',
